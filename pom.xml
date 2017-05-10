@@ -9,7 +9,7 @@
 	<groupId>com.flozano</groupId>
 	<artifactId>socialauth</artifactId>
 	<name>socialauth</name>
-	<version>5.0-SNAPSHOT</version>
+	<version>5.1-SNAPSHOT</version>
 	<description>SocialAuth library forked</description>
 	<url>http://github.com/flozano/socialauth</url>
 	<licenses>
