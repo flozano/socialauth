@@ -90,9 +90,9 @@ public class HotmailImpl extends AbstractProvider {
 	static {
 		ENDPOINTS = new HashMap<String, String>();
 		ENDPOINTS.put(Constants.OAUTH_AUTHORIZATION_URL,
-				"https://oauth.live.com/authorize");
+				"https://login.live.com/oauth20_authorize.srf");
 		ENDPOINTS.put(Constants.OAUTH_ACCESS_TOKEN_URL,
-				"https://oauth.live.com/token");
+				"https://login.live.com/oauth20_token.srf");
 	}
 
 	/**
