@@ -31,6 +31,7 @@ import java.util.Map;
 
 import com.flozano.socialauth.Permission;
 import com.flozano.socialauth.util.AccessGrant;
+import com.flozano.socialauth.util.HttpUtil.ConnectionSettings;
 import com.flozano.socialauth.util.Response;
 
 public interface OAuthStrategyBase extends Serializable {
@@ -38,7 +39,7 @@ public interface OAuthStrategyBase extends Serializable {
 	/**
 	 * It provides the URL which will be used for authentication with the
 	 * provider
-	 * 
+	 *
 	 * @param successUrl
 	 *            the call back url on which user will be redirected after
 	 *            authentication
@@ -49,30 +50,28 @@ public interface OAuthStrategyBase extends Serializable {
 
 	/**
 	 * Verifies the user and get access token
-	 * 
+	 *
 	 * @param requestParams
 	 *            request parameters, received from the provider
 	 * @return AccessGrant which contains access token and other information
 	 * @throws Exception
 	 */
-	public AccessGrant verifyResponse(Map<String, String> requestParams)
-			throws Exception;
+	public AccessGrant verifyResponse(Map<String, String> requestParams) throws Exception;
 
 	/**
 	 * Verifies the user and get access token
-	 * 
+	 *
 	 * @param requestParams
 	 * @param methodType
 	 * @return AccessGrant which contains access token and other attributes
 	 * @throws Exception
 	 */
-	public AccessGrant verifyResponse(Map<String, String> requestParams,
-			String methodType) throws Exception;
+	public AccessGrant verifyResponse(Map<String, String> requestParams, String methodType) throws Exception;
 
 	/**
 	 * Makes HTTP GET request to a given URL.It attaches access token in URL if
 	 * required.
-	 * 
+	 *
 	 * @param url
 	 *            URL to make HTTP request.
 	 * @return Response object
@@ -83,7 +82,7 @@ public interface OAuthStrategyBase extends Serializable {
 	/**
 	 * Makes HTTP request to a given URL.It attaches access token in URL if
 	 * required.
-	 * 
+	 *
 	 * @param url
 	 *            URL to make HTTP request.
 	 * @param methodType
@@ -96,13 +95,12 @@ public interface OAuthStrategyBase extends Serializable {
 	 *            Request Body
 	 * @throws Exception
 	 */
-	public Response executeFeed(String url, String methodType,
-			Map<String, String> params, Map<String, String> headerParams,
-			String body) throws Exception;
+	public Response executeFeed(String url, String methodType, Map<String, String> params,
+			Map<String, String> headerParams, String body) throws Exception;
 
 	/**
 	 * Sets the permission
-	 * 
+	 *
 	 * @param permission
 	 *            Permission object which can be Permission.AUHTHENTICATE_ONLY,
 	 *            Permission.ALL, Permission.DEFAULT
@@ -111,7 +109,7 @@ public interface OAuthStrategyBase extends Serializable {
 
 	/**
 	 * Sets the scope string
-	 * 
+	 *
 	 * @param scope
 	 *            scope string
 	 */
@@ -119,7 +117,7 @@ public interface OAuthStrategyBase extends Serializable {
 
 	/**
 	 * Stores access grant for the provider
-	 * 
+	 *
 	 * @param accessGrant
 	 *            It contains the access token and other information
 	 * @throws Exception
@@ -129,7 +127,7 @@ public interface OAuthStrategyBase extends Serializable {
 	/**
 	 * Sets the name of access token parameter which will returns by the
 	 * provider. By default it is "access_token"
-	 * 
+	 *
 	 * @param accessTokenParameterName
 	 */
 	public void setAccessTokenParameterName(String accessTokenParameterName);
@@ -141,7 +139,7 @@ public interface OAuthStrategyBase extends Serializable {
 
 	/**
 	 * Makes HTTP request to upload image and status.
-	 * 
+	 *
 	 * @param url
 	 *            URL to make HTTP request.
 	 * @param methodType
@@ -159,16 +157,19 @@ public interface OAuthStrategyBase extends Serializable {
 	 * @return Response object
 	 * @throws Exception
 	 */
-	public Response uploadImage(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String fileName,
-			final InputStream inputStream, final String fileParamName)
-			throws Exception;
+	public Response uploadImage(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String fileName, final InputStream inputStream,
+			final String fileParamName) throws Exception;
 
 	/**
 	 * Retrieves the AccessGrant object.
-	 * 
+	 *
 	 * @return AccessGrant object.
 	 */
 	public AccessGrant getAccessGrant();
+
+	/**
+	 *
+	 */
+	public void setConnectionSettings(ConnectionSettings connectionSettings);
 }

@@ -25,6 +25,7 @@ package com.flozano.socialauth;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +43,9 @@ import com.flozano.socialauth.util.ProviderSupport;
 /**
  * It implements AuthProvider interface and provides some methods for
  * registering and getting plugins.
- * 
+ *
  * @author tarunn@brickred.com
- * 
+ *
  */
 public abstract class AbstractProvider implements AuthProvider, Serializable {
 
@@ -55,14 +56,13 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 	private final Log LOG = LogFactory.getLog(this.getClass());
 
 	public AbstractProvider() throws Exception {
-		pluginsMap = new HashMap<Class<? extends Plugin>, Class<? extends Plugin>>();
+		pluginsMap = new HashMap<>();
 	}
 
 	@Override
 	public <T> T getPlugin(final Class<T> clazz) throws Exception {
 		Class<? extends Plugin> plugin = pluginsMap.get(clazz);
-		Constructor<? extends Plugin> cons = plugin
-				.getConstructor(ProviderSupport.class);
+		Constructor<? extends Plugin> cons = plugin.getConstructor(ProviderSupport.class);
 		ProviderSupport support = new ProviderSupport(getOauthStrategy());
 		Plugin obj = cons.newInstance(support);
 		return (T) obj;
@@ -84,11 +84,9 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 		if (pluginsList != null && !pluginsList.isEmpty()) {
 			for (String s : pluginsList) {
 				LOG.info("Loading plugin :: " + s);
-				Class<? extends Plugin> clazz = Class.forName(s).asSubclass(
-						Plugin.class);
+				Class<? extends Plugin> clazz = Class.forName(s).asSubclass(Plugin.class);
 				// getting constructor only for checking
-				Constructor<? extends Plugin> cons = clazz
-						.getConstructor(ProviderSupport.class);
+				Constructor<? extends Plugin> cons = clazz.getConstructor(ProviderSupport.class);
 				Class<?> interfaces[] = clazz.getInterfaces();
 				for (Class<?> c : interfaces) {
 					if (Plugin.class.isAssignableFrom(c)) {
@@ -100,8 +98,7 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 	}
 
 	@Override
-	public void refreshToken(AccessGrant accessGrant)
-			throws SocialAuthException {
+	public void refreshToken(AccessGrant accessGrant) throws SocialAuthException {
 		throw new SocialAuthException("Not implemented for given provider");
 
 	}
@@ -109,7 +106,7 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 	/**
 	 * Returns the scopes of custom plugins of a provider those are configured
 	 * in properties file
-	 * 
+	 *
 	 * @param oauthConfig
 	 *            OAuthConfig object of that provider
 	 * @return String of comma separated scopes of all register plugins of a
@@ -129,15 +126,22 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 
 	/**
 	 * Returns the list of plugins of a provider.
-	 * 
+	 *
 	 * @return List of plugins of a provider
 	 */
 	protected abstract List<String> getPluginsList();
 
 	/**
 	 * Returns the OAuthStrategyBase of a provider.
-	 * 
+	 *
 	 * @return OAuthStrategyBase of a provider.
 	 */
 	protected abstract OAuthStrategyBase getOauthStrategy();
+
+	@Override
+	public String getLoginRedirectURL(String successUrl, String state) throws Exception {
+		String url = getLoginRedirectURL(successUrl);
+
+		return url += "&state=" + URLEncoder.encode(state, "UTF-8");
+	}
 }
