@@ -28,6 +28,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
@@ -46,12 +47,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -66,12 +66,12 @@ import com.flozano.socialauth.exception.SocialAuthException;
  * users that Commons HTTP Client does not work on Google AppEngine. Hence we
  * have handcoded this class using HTTPURLConnection and incorporated only as
  * much functionality as is needed for OAuth clients.
- * 
+ *
  * This class may be completed rewritten in future, or may be removed if a
  * version of Commons HTTP Client compatible with AppEngine is released.
- * 
+ *
  * @author tarunn@brickred.com
- * 
+ *
  */
 public class HttpUtil {
 
@@ -101,13 +101,11 @@ public class HttpUtil {
 				ctx = SSLContext.getInstance("TLS");
 				ctx.init(null, new TrustManager[] { new X509TrustManager() {
 					@Override
-					public void checkClientTrusted(
-							final X509Certificate[] chain, final String authType) {
+					public void checkClientTrusted(final X509Certificate[] chain, final String authType) {
 					}
 
 					@Override
-					public void checkServerTrusted(
-							final X509Certificate[] chain, final String authType) {
+					public void checkServerTrusted(final X509Certificate[] chain, final String authType) {
 					}
 
 					@Override
@@ -115,38 +113,24 @@ public class HttpUtil {
 						return new X509Certificate[] {};
 					}
 				} }, null);
-				HttpsURLConnection.setDefaultSSLSocketFactory(ctx
-						.getSocketFactory());
-				HttpsURLConnection
-						.setDefaultHostnameVerifier(new HostnameVerifier() {
-
-							@Override
-							public boolean verify(final String arg0,
-									final SSLSession arg1) {
-								return true;
-							}
-
-						});
+				HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
+				HttpsURLConnection.setDefaultHostnameVerifier((arg0, arg1) -> true);
 			} catch (Exception e) {
-				LOG.warn("SSLContext is not supported by your android application."
-						+ e.getMessage());
+				LOG.warn("SSLContext is not supported by your android application." + e.getMessage());
 			}
 		} else {
 			// if java application or android version greater than 2.2 then add
 			// this configuration
 			try {
 				ctx = SSLContext.getInstance("TLS");
-				ctx.init(new KeyManager[0],
-						new TrustManager[] { new DefaultTrustManager() },
-						new SecureRandom());
+				ctx.init(new KeyManager[0], new TrustManager[] { new DefaultTrustManager() }, new SecureRandom());
 				SSLContext.setDefault(ctx);
 			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
 			} catch (KeyManagementException e) {
 				e.printStackTrace();
 			} catch (NoClassDefFoundError e) {
-				LOG.warn("SSLContext is not supported by your applicaiton server."
-						+ e.getMessage());
+				LOG.warn("SSLContext is not supported by your applicaiton server." + e.getMessage());
 				e.printStackTrace();
 			} catch (Exception e) {
 				LOG.warn("Error while createing SSLContext");
@@ -157,7 +141,7 @@ public class HttpUtil {
 
 	/**
 	 * Makes HTTP request using java.net.HTTPURLConnection
-	 * 
+	 *
 	 * @param urlStr
 	 *            the URL String
 	 * @param requestMethod
@@ -169,9 +153,31 @@ public class HttpUtil {
 	 * @return Response Object
 	 * @throws SocialAuthException
 	 */
-	public static Response doHttpRequest(final String urlStr,
-			final String requestMethod, final String body,
+	public static Response doHttpRequest(final String urlStr, final String requestMethod, final String body,
 			final Map<String, String> header) throws SocialAuthException {
+		return doHttpRequest(urlStr, requestMethod, body, header, Optional.empty());
+	}
+
+	/**
+	 * Makes HTTP request using java.net.HTTPURLConnection and optional settings
+	 * for the connection
+	 *
+	 * @param urlStr
+	 *            the URL String
+	 * @param requestMethod
+	 *            Method type
+	 * @param body
+	 *            Body to pass in request.
+	 * @param header
+	 *            Header parameters
+	 * @param connectionSettings
+	 *            The connection settings to apply
+	 * @return Response Object
+	 * @throws SocialAuthException
+	 */
+	public static Response doHttpRequest(final String urlStr, final String requestMethod, final String body,
+			final Map<String, String> header, Optional<ConnectionSettings> connectionSettings)
+			throws SocialAuthException {
 		HttpURLConnection conn;
 		try {
 
@@ -182,9 +188,10 @@ public class HttpUtil {
 				conn = (HttpURLConnection) url.openConnection();
 			}
 
+			connectionSettings.ifPresent(settings -> settings.apply(conn));
+
 			if (MethodType.POST.toString().equalsIgnoreCase(requestMethod)
-					|| MethodType.PUT.toString()
-							.equalsIgnoreCase(requestMethod)) {
+					|| MethodType.PUT.toString().equalsIgnoreCase(requestMethod)) {
 				conn.setDoOutput(true);
 			}
 
@@ -207,8 +214,7 @@ public class HttpUtil {
 			// If use POST or PUT must use this
 			OutputStream os = null;
 			if (body != null) {
-				if (requestMethod != null
-						&& !MethodType.GET.toString().equals(requestMethod)
+				if (requestMethod != null && !MethodType.GET.toString().equals(requestMethod)
 						&& !MethodType.DELETE.toString().equals(requestMethod)) {
 					os = conn.getOutputStream();
 					DataOutputStream out = new DataOutputStream(os);
@@ -225,7 +231,7 @@ public class HttpUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param urlStr
 	 *            the URL String
 	 * @param requestMethod
@@ -243,10 +249,35 @@ public class HttpUtil {
 	 * @return Response object
 	 * @throws SocialAuthException
 	 */
-	public static Response doHttpRequest(final String urlStr,
-			final String requestMethod, final Map<String, String> params,
-			final Map<String, String> header, final InputStream inputStream,
-			final String fileName, final String fileParamName)
+	public static Response doHttpRequest(final String urlStr, final String requestMethod,
+			final Map<String, String> params, final Map<String, String> header, final InputStream inputStream,
+			final String fileName, final String fileParamName) throws SocialAuthException {
+		return doHttpRequest(urlStr, requestMethod, params, header, inputStream, fileName, fileParamName,
+				Optional.empty());
+	}
+
+	/**
+	 *
+	 * @param urlStr
+	 *            the URL String
+	 * @param requestMethod
+	 *            Method type
+	 * @param params
+	 *            Parameters to pass in request
+	 * @param header
+	 *            Header parameters
+	 * @param inputStream
+	 *            Input stream of image
+	 * @param fileName
+	 *            Image file name
+	 * @param fileParamName
+	 *            Image Filename parameter. It requires in some provider.
+	 * @return Response object
+	 * @throws SocialAuthException
+	 */
+	public static Response doHttpRequest(final String urlStr, final String requestMethod,
+			final Map<String, String> params, final Map<String, String> header, final InputStream inputStream,
+			final String fileName, final String fileParamName, Optional<ConnectionSettings> connectionSettings)
 			throws SocialAuthException {
 		HttpURLConnection conn;
 		try {
@@ -258,9 +289,10 @@ public class HttpUtil {
 				conn = (HttpURLConnection) url.openConnection();
 			}
 
+			connectionSettings.ifPresent(settings -> settings.apply(conn));
+
 			if (requestMethod.equalsIgnoreCase(MethodType.POST.toString())
-					|| requestMethod
-							.equalsIgnoreCase(MethodType.PUT.toString())) {
+					|| requestMethod.equalsIgnoreCase(MethodType.PUT.toString())) {
 				conn.setDoOutput(true);
 			}
 
@@ -283,14 +315,11 @@ public class HttpUtil {
 			// If use POST or PUT must use this
 			OutputStream os = null;
 			if (inputStream != null) {
-				if (requestMethod != null
-						&& !MethodType.GET.toString().equals(requestMethod)
+				if (requestMethod != null && !MethodType.GET.toString().equals(requestMethod)
 						&& !MethodType.DELETE.toString().equals(requestMethod)) {
 					LOG.debug(requestMethod + " request");
-					String boundary = "----Socialauth-posting"
-							+ System.currentTimeMillis();
-					conn.setRequestProperty("Content-Type",
-							"multipart/form-data; boundary=" + boundary);
+					String boundary = "----Socialauth-posting" + System.currentTimeMillis();
+					conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 					boundary = "--" + boundary;
 
 					os = conn.getOutputStream();
@@ -298,16 +327,12 @@ public class HttpUtil {
 					write(out, boundary + "\r\n");
 
 					if (fileParamName != null) {
-						write(out, "Content-Disposition: form-data; name=\""
-								+ fileParamName + "\"; filename=\"" + fileName
-								+ "\"\r\n");
+						write(out, "Content-Disposition: form-data; name=\"" + fileParamName + "\"; filename=\""
+								+ fileName + "\"\r\n");
 					} else {
-						write(out,
-								"Content-Disposition: form-data;  filename=\""
-										+ fileName + "\"\r\n");
+						write(out, "Content-Disposition: form-data;  filename=\"" + fileName + "\"\r\n");
 					}
-					write(out, "Content-Type: " + "multipart/form-data"
-							+ "\r\n\r\n");
+					write(out, "Content-Type: " + "multipart/form-data" + "\r\n\r\n");
 					int b;
 					while ((b = inputStream.read()) != -1) {
 						out.write(b);
@@ -315,13 +340,11 @@ public class HttpUtil {
 					// out.write(imageFile);
 					write(out, "\r\n");
 
-					Iterator<Map.Entry<String, String>> entries = params
-							.entrySet().iterator();
+					Iterator<Map.Entry<String, String>> entries = params.entrySet().iterator();
 					while (entries.hasNext()) {
 						Map.Entry<String, String> entry = entries.next();
 						write(out, boundary + "\r\n");
-						write(out, "Content-Disposition: form-data; name=\""
-								+ entry.getKey() + "\"\r\n\r\n");
+						write(out, "Content-Disposition: form-data; name=\"" + entry.getKey() + "\"\r\n\r\n");
 						// write(out,
 						// "Content-Type: text/plain;charset=UTF-8 \r\n\r\n");
 						LOG.debug(entry.getValue());
@@ -344,15 +367,14 @@ public class HttpUtil {
 	/**
 	 * Generates a query string from given Map while sorting the parameters in
 	 * the canonical order as required by oAuth before signing
-	 * 
+	 *
 	 * @param params
 	 *            Parameters Map to generate query string
 	 * @return String
 	 * @throws Exception
 	 */
-	public static String buildParams(final Map<String, String> params)
-			throws Exception {
-		List<String> argList = new ArrayList<String>();
+	public static String buildParams(final Map<String, String> params) throws Exception {
+		List<String> argList = new ArrayList<>();
 
 		for (String key : params.keySet()) {
 			String val = params.get(key);
@@ -374,8 +396,7 @@ public class HttpUtil {
 
 	private static final String ALLOWED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.!~*'()";
 
-	public static String encodeURIComponent(final String value)
-			throws Exception {
+	public static String encodeURIComponent(final String value) throws Exception {
 		if (value == null) {
 			return "";
 		}
@@ -383,8 +404,7 @@ public class HttpUtil {
 		try {
 			return URLEncoder.encode(value, "utf-8")
 					// OAuth encodes some characters differently:
-					.replace("+", "%20").replace("*", "%2A")
-					.replace("%7E", "~");
+					.replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
 			// This could be done faster with more hand-crafted code.
 		} catch (UnsupportedEncodingException wow) {
 			throw new SocialAuthException(wow.getMessage(), wow);
@@ -394,7 +414,7 @@ public class HttpUtil {
 	/*
 	 * public static String encodeURIComponent(final String input) { if (input
 	 * == null || input.trim().length() == 0) { return input; }
-	 * 
+	 *
 	 * int l = input.length(); StringBuilder o = new StringBuilder(l * 3); try {
 	 * for (int i = 0; i < l; i++) { String e = input.substring(i, i + 1); if
 	 * (ALLOWED_CHARS.indexOf(e) == -1) { byte[] b = e.getBytes("utf-8");
@@ -418,7 +438,7 @@ public class HttpUtil {
 
 	/**
 	 * It decodes the given string
-	 * 
+	 *
 	 * @param encodedURI
 	 * @return decoded string
 	 */
@@ -481,13 +501,11 @@ public class HttpUtil {
 
 	private static class DefaultTrustManager implements X509TrustManager {
 		@Override
-		public void checkClientTrusted(final X509Certificate[] arg0,
-				final String arg1) throws CertificateException {
+		public void checkClientTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
 		}
 
 		@Override
-		public void checkServerTrusted(final X509Certificate[] arg0,
-				final String arg1) throws CertificateException {
+		public void checkServerTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
 		}
 
 		@Override
@@ -497,10 +515,10 @@ public class HttpUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * Sets the proxy host and port. This will be implicitly called if
 	 * "proxy.host" and "proxy.port" properties are given in properties file
-	 * 
+	 *
 	 * @param host
 	 *            proxy host
 	 * @param port
@@ -520,7 +538,7 @@ public class HttpUtil {
 	/**
 	 * Sets the connection time out. This will be implicitly called if
 	 * "http.connectionTimeOut" property is given in properties file
-	 * 
+	 *
 	 * @param timeout
 	 *            httpconnection timeout value
 	 */
@@ -528,10 +546,13 @@ public class HttpUtil {
 		timeoutValue = timeout;
 	}
 
-	public static void write(final DataOutputStream out, final String outStr)
-			throws IOException {
+	public static void write(final DataOutputStream out, final String outStr) throws IOException {
 		out.writeBytes(outStr);
 		LOG.debug(outStr);
+	}
+
+	public static interface ConnectionSettings extends Serializable {
+		void apply(HttpURLConnection connection);
 	}
 
 }

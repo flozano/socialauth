@@ -32,6 +32,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +45,7 @@ import com.flozano.socialauth.org.json.JSONObject;
 import com.flozano.socialauth.util.AccessGrant;
 import com.flozano.socialauth.util.Constants;
 import com.flozano.socialauth.util.HttpUtil;
+import com.flozano.socialauth.util.HttpUtil.ConnectionSettings;
 import com.flozano.socialauth.util.MethodType;
 import com.flozano.socialauth.util.OAuthConfig;
 import com.flozano.socialauth.util.OAuthConsumer;
@@ -63,6 +65,7 @@ public class OAuth2 implements OAuthStrategyBase {
 	private String successUrl;
 	private String accessTokenParameterName;
 	private final boolean urlEncodeClientSecret;
+	private ConnectionSettings connectionSettings = null;
 
 	public OAuth2(final OAuthConfig config, final Map<String, String> endpoints) {
 		this(config, endpoints, false);
@@ -170,11 +173,13 @@ public class OAuth2 implements OAuthStrategyBase {
 			if (MethodType.GET.toString().equals(methodType)) {
 				authURL = sb.toString();
 				LOG.debug("URL for Access Token request : " + authURL);
-				response = HttpUtil.doHttpRequest(authURL, methodType, null, null);
+				response = HttpUtil.doHttpRequest(authURL, methodType, null, null,
+						Optional.ofNullable(connectionSettings));
 			} else {
 				authURL = endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL);
 				LOG.debug("URL for Access Token request : " + authURL);
-				response = HttpUtil.doHttpRequest(authURL, methodType, sb.toString(), null);
+				response = HttpUtil.doHttpRequest(authURL, methodType, sb.toString(), null,
+						Optional.ofNullable(connectionSettings));
 			}
 		} catch (Exception e) {
 			throw new SocialAuthException("Error in url : " + authURL, e);
@@ -272,7 +277,8 @@ public class OAuth2 implements OAuthStrategyBase {
 		char separator = url.indexOf('?') == -1 ? '?' : '&';
 		String urlStr = url + separator + accessTokenParameterName + "=" + accessGrant.getKey();
 		LOG.debug("Calling URL : " + urlStr);
-		return HttpUtil.doHttpRequest(urlStr, MethodType.GET.toString(), null, null);
+		return HttpUtil.doHttpRequest(urlStr, MethodType.GET.toString(), null, null,
+				Optional.ofNullable(connectionSettings));
 	}
 
 	@Override
@@ -329,7 +335,8 @@ public class OAuth2 implements OAuthStrategyBase {
 		LOG.debug("Calling URL	:	" + reqURL);
 		LOG.debug("Body		:	" + bodyStr);
 		LOG.debug("Header Params	:	" + headerParams);
-		return HttpUtil.doHttpRequest(reqURL, methodType, bodyStr, headerParams);
+		return HttpUtil.doHttpRequest(reqURL, methodType, bodyStr, headerParams,
+				Optional.ofNullable(connectionSettings));
 	}
 
 	@Override
@@ -357,11 +364,17 @@ public class OAuth2 implements OAuthStrategyBase {
 		if (params != null && params.size() > 0) {
 			map.putAll(params);
 		}
-		return HttpUtil.doHttpRequest(url, methodType, map, headerParams, inputStream, fileName, null);
+		return HttpUtil.doHttpRequest(url, methodType, map, headerParams, inputStream, fileName, null,
+				Optional.ofNullable(connectionSettings));
 	}
 
 	@Override
 	public AccessGrant getAccessGrant() {
 		return accessGrant;
+	}
+
+	@Override
+	public void setConnectionSettings(ConnectionSettings connectionSettings) {
+		this.connectionSettings = connectionSettings;
 	}
 }

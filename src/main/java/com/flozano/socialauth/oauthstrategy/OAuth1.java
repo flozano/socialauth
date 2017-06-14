@@ -36,6 +36,7 @@ import com.flozano.socialauth.exception.ProviderStateException;
 import com.flozano.socialauth.exception.SocialAuthException;
 import com.flozano.socialauth.util.AccessGrant;
 import com.flozano.socialauth.util.Constants;
+import com.flozano.socialauth.util.HttpUtil.ConnectionSettings;
 import com.flozano.socialauth.util.MethodType;
 import com.flozano.socialauth.util.OAuthConfig;
 import com.flozano.socialauth.util.OAuthConsumer;
@@ -67,8 +68,7 @@ public class OAuth1 implements OAuthStrategyBase {
 		LOG.info("Determining URL for redirection");
 		providerState = true;
 		LOG.debug("Call to fetch Request Token");
-		requestToken = oauth.getRequestToken(
-				endpoints.get(Constants.OAUTH_REQUEST_TOKEN_URL), successUrl);
+		requestToken = oauth.getRequestToken(endpoints.get(Constants.OAUTH_REQUEST_TOKEN_URL), successUrl);
 		String authUrl = endpoints.get(Constants.OAUTH_AUTHORIZATION_URL);
 		if (scope != null) {
 			if (scope.contains("=")) {
@@ -77,16 +77,14 @@ public class OAuth1 implements OAuthStrategyBase {
 				authUrl += "?scope=" + scope;
 			}
 		}
-		StringBuilder urlBuffer = oauth.buildAuthUrl(authUrl, requestToken,
-				successUrl);
-		LOG.info("Redirection to following URL should happen : "
-				+ urlBuffer.toString());
+		StringBuilder urlBuffer = oauth.buildAuthUrl(authUrl, requestToken, successUrl);
+		LOG.info("Redirection to following URL should happen : " + urlBuffer.toString());
 		return urlBuffer.toString();
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams,
-			final String methodType) throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams, final String methodType)
+			throws Exception {
 		LOG.info("Verifying the authentication response from provider");
 		if (!providerState) {
 			throw new ProviderStateException();
@@ -99,16 +97,14 @@ public class OAuth1 implements OAuthStrategyBase {
 			requestToken.setAttribute(Constants.OAUTH_VERIFIER, verifier);
 		}
 		LOG.debug("Call to fetch Access Token");
-		accessToken = oauth.getAccessToken(
-				endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL), requestToken);
+		accessToken = oauth.getAccessToken(endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL), requestToken);
 		accessToken.setPermission(permission);
 		accessToken.setProviderId(providerId);
 		return accessToken;
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams)
-			throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams) throws Exception {
 		return verifyResponse(requestParams, MethodType.GET.toString());
 	}
 
@@ -128,37 +124,29 @@ public class OAuth1 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public Response executeFeed(final String urlStr, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String body)
-			throws Exception {
+	public Response executeFeed(final String urlStr, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String body) throws Exception {
 		Response response = null;
 		if (accessToken == null) {
-			throw new SocialAuthException(
-					"Please call verifyResponse function first to get Access Token");
+			throw new SocialAuthException("Please call verifyResponse function first to get Access Token");
 		}
 		if (MethodType.GET.toString().equals(methodType)) {
 			try {
 				response = oauth.httpGet(urlStr, headerParams, accessToken);
 			} catch (Exception ie) {
-				throw new SocialAuthException(
-						"Error while making request to URL : " + urlStr, ie);
+				throw new SocialAuthException("Error while making request to URL : " + urlStr, ie);
 			}
 		} else if (MethodType.PUT.toString().equals(methodType)) {
 			try {
-				response = oauth.httpPut(urlStr, params, headerParams, body,
-						accessToken);
+				response = oauth.httpPut(urlStr, params, headerParams, body, accessToken);
 			} catch (Exception e) {
-				throw new SocialAuthException(
-						"Error while making request to URL : " + urlStr, e);
+				throw new SocialAuthException("Error while making request to URL : " + urlStr, e);
 			}
 		} else if (MethodType.POST.toString().equals(methodType)) {
 			try {
-				response = oauth.httpPost(urlStr, params, headerParams, body,
-						accessToken);
+				response = oauth.httpPost(urlStr, params, headerParams, body, accessToken);
 			} catch (Exception e) {
-				throw new SocialAuthException(
-						"Error while making request to URL : " + urlStr, e);
+				throw new SocialAuthException("Error while making request to URL : " + urlStr, e);
 			}
 		}
 		return response;
@@ -170,8 +158,7 @@ public class OAuth1 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public void setAccessTokenParameterName(
-			final String accessTokenParameterName) {
+	public void setAccessTokenParameterName(final String accessTokenParameterName) {
 		LOG.warn("It is not implemented for OAuth1");
 
 	}
@@ -183,18 +170,21 @@ public class OAuth1 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public Response uploadImage(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String fileName,
-			final InputStream inputStream, final String fileParamName)
-			throws Exception {
-		return oauth.uploadImage(url, params, headerParams, inputStream,
-				fileParamName, fileName, methodType, accessToken, true);
+	public Response uploadImage(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String fileName, final InputStream inputStream,
+			final String fileParamName) throws Exception {
+		return oauth.uploadImage(url, params, headerParams, inputStream, fileParamName, fileName, methodType,
+				accessToken, true);
 	}
 
 	@Override
 	public AccessGrant getAccessGrant() {
 		return accessToken;
+	}
+
+	@Override
+	public void setConnectionSettings(ConnectionSettings connectionSettings) {
+		oauth.setConnectionSettings(connectionSettings);
 	}
 
 }

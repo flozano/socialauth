@@ -29,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +41,7 @@ import com.flozano.socialauth.exception.SocialAuthException;
 import com.flozano.socialauth.util.AccessGrant;
 import com.flozano.socialauth.util.Constants;
 import com.flozano.socialauth.util.HttpUtil;
+import com.flozano.socialauth.util.HttpUtil.ConnectionSettings;
 import com.flozano.socialauth.util.MethodType;
 import com.flozano.socialauth.util.OAuthConfig;
 import com.flozano.socialauth.util.OAuthConsumer;
@@ -59,6 +61,7 @@ public class Hybrid implements OAuthStrategyBase {
 	private String providerId;
 	private OAuthConsumer oauth;
 	private boolean providerState;
+	private ConnectionSettings connectionSettings = null;
 
 	public Hybrid(final OAuthConfig config, final Map<String, String> endpoints) {
 		oauth = new OAuthConsumer(config);
@@ -69,15 +72,13 @@ public class Hybrid implements OAuthStrategyBase {
 
 	@Override
 	public String getLoginRedirectURL(final String successUrl) throws Exception {
-		String associationURL = OpenIdConsumer.getAssociationURL(endpoints
-				.get(Constants.OAUTH_REQUEST_TOKEN_URL));
-		Response r = HttpUtil.doHttpRequest(associationURL,
-				MethodType.GET.toString(), null, null);
+		String associationURL = OpenIdConsumer.getAssociationURL(endpoints.get(Constants.OAUTH_REQUEST_TOKEN_URL));
+		Response r = HttpUtil.doHttpRequest(associationURL, MethodType.GET.toString(), null, null,
+				Optional.ofNullable(connectionSettings));
 		StringBuffer sb = new StringBuffer();
 		String assocHandle = "";
 		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					r.getInputStream(), "UTF-8"));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(r.getInputStream(), "UTF-8"));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				sb.append(line).append("\n");
@@ -103,22 +104,20 @@ public class Hybrid implements OAuthStrategyBase {
 		consumerURL = consumerURL.replaceAll(":{1}\\d*", "");
 
 		providerState = true;
-		String url = OpenIdConsumer.getRequestTokenURL(
-				endpoints.get(Constants.OAUTH_REQUEST_TOKEN_URL), successUrl,
+		String url = OpenIdConsumer.getRequestTokenURL(endpoints.get(Constants.OAUTH_REQUEST_TOKEN_URL), successUrl,
 				realm, assocHandle, consumerURL, scope);
 		LOG.info("Redirection to following URL should happen : " + url);
 		return url;
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams)
-			throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams) throws Exception {
 		return verifyResponse(requestParams, MethodType.GET.toString());
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams,
-			final String methodType) throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams, final String methodType)
+			throws Exception {
 		if (!providerState) {
 			throw new ProviderStateException();
 		}
@@ -130,19 +129,15 @@ public class Hybrid implements OAuthStrategyBase {
 				accessToken = new AccessGrant();
 			} else {
 				if (requestParams.get(OpenIdConsumer.OPENID_REQUEST_TOKEN) != null) {
-					reqTokenStr = HttpUtil.decodeURIComponent(requestParams
-							.get(OpenIdConsumer.OPENID_REQUEST_TOKEN));
+					reqTokenStr = HttpUtil.decodeURIComponent(requestParams.get(OpenIdConsumer.OPENID_REQUEST_TOKEN));
 				}
 				requestToken = new AccessGrant();
 				requestToken.setKey(reqTokenStr);
 				LOG.debug("Call to fetch Access Token");
-				accessToken = oauth.getAccessToken(
-						endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL),
-						requestToken);
+				accessToken = oauth.getAccessToken(endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL), requestToken);
 				if (accessToken == null) {
-					throw new SocialAuthConfigurationException(
-							"Application keys may not be correct. "
-									+ "The server running the application should be same that was registered to get the keys.");
+					throw new SocialAuthConfigurationException("Application keys may not be correct. "
+							+ "The server running the application should be same that was registered to get the keys.");
 				}
 			}
 			for (Map.Entry<String, String> entry : requestParams.entrySet()) {
@@ -166,36 +161,29 @@ public class Hybrid implements OAuthStrategyBase {
 	@Override
 	public Response executeFeed(final String url) throws Exception {
 		if (accessToken == null) {
-			throw new SocialAuthException(
-					"Please call verifyResponse function first to get Access Token");
+			throw new SocialAuthException("Please call verifyResponse function first to get Access Token");
 		}
 		return oauth.httpGet(url, null, accessToken);
 	}
 
 	@Override
-	public Response executeFeed(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String body)
-			throws Exception {
+	public Response executeFeed(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String body) throws Exception {
 		Response response = null;
 		if (accessToken == null) {
-			throw new SocialAuthException(
-					"Please call verifyResponse function first to get Access Token");
+			throw new SocialAuthException("Please call verifyResponse function first to get Access Token");
 		}
 		if (MethodType.GET.toString().equals(methodType)) {
 			try {
 				response = oauth.httpGet(url, headerParams, accessToken);
 			} catch (Exception ie) {
-				throw new SocialAuthException(
-						"Error while making request to URL : " + url, ie);
+				throw new SocialAuthException("Error while making request to URL : " + url, ie);
 			}
 		} else if (MethodType.PUT.toString().equals(methodType)) {
 			try {
-				response = oauth.httpPut(url, params, headerParams, body,
-						accessToken);
+				response = oauth.httpPut(url, params, headerParams, body, accessToken);
 			} catch (Exception e) {
-				throw new SocialAuthException(
-						"Error while making request to URL : " + url, e);
+				throw new SocialAuthException("Error while making request to URL : " + url, e);
 			}
 		}
 		return response;
@@ -219,8 +207,7 @@ public class Hybrid implements OAuthStrategyBase {
 	}
 
 	@Override
-	public void setAccessTokenParameterName(
-			final String accessTokenParameterName) {
+	public void setAccessTokenParameterName(final String accessTokenParameterName) {
 		LOG.warn("It is not implemented for Hybrid");
 
 	}
@@ -232,17 +219,20 @@ public class Hybrid implements OAuthStrategyBase {
 	}
 
 	@Override
-	public Response uploadImage(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String fileName,
-			final InputStream inputStream, final String fileParamName)
-			throws Exception {
-		return oauth.uploadImage(url, params, headerParams, inputStream,
-				fileParamName, fileName, methodType, accessToken, true);
+	public Response uploadImage(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String fileName, final InputStream inputStream,
+			final String fileParamName) throws Exception {
+		return oauth.uploadImage(url, params, headerParams, inputStream, fileParamName, fileName, methodType,
+				accessToken, true);
 	}
 
 	@Override
 	public AccessGrant getAccessGrant() {
 		return accessToken;
+	}
+
+	@Override
+	public void setConnectionSettings(ConnectionSettings connectionSettings) {
+		this.connectionSettings = connectionSettings;
 	}
 }
