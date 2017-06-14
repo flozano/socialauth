@@ -62,13 +62,19 @@ public class OAuth2 implements OAuthStrategyBase {
 	private String providerId;
 	private String successUrl;
 	private String accessTokenParameterName;
+	private final boolean urlEncodeClientSecret;
 
 	public OAuth2(final OAuthConfig config, final Map<String, String> endpoints) {
+		this(config, endpoints, false);
+	}
+
+	public OAuth2(final OAuthConfig config, final Map<String, String> endpoints, boolean urlEncodeClientSecret) {
 		oauth = new OAuthConsumer(config);
 		this.endpoints = endpoints;
 		permission = Permission.DEFAULT;
 		providerId = config.getId();
 		accessTokenParameterName = Constants.ACCESS_TOKEN_PARAMETER_NAME;
+		this.urlEncodeClientSecret = urlEncodeClientSecret;
 	}
 
 	@Override
@@ -82,8 +88,7 @@ public class OAuth2 implements OAuthStrategyBase {
 		}
 		StringBuffer sb = new StringBuffer();
 		sb.append(endpoints.get(Constants.OAUTH_AUTHORIZATION_URL));
-		char separator = endpoints.get(Constants.OAUTH_AUTHORIZATION_URL)
-				.indexOf('?') == -1 ? '?' : '&';
+		char separator = endpoints.get(Constants.OAUTH_AUTHORIZATION_URL).indexOf('?') == -1 ? '?' : '&';
 		sb.append(separator);
 		sb.append("client_id=").append(oauth.getConfig().get_consumerKey());
 		sb.append("&response_type=code");
@@ -98,14 +103,13 @@ public class OAuth2 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams)
-			throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams) throws Exception {
 		return verifyResponse(requestParams, MethodType.GET.toString());
 	}
 
 	@Override
-	public AccessGrant verifyResponse(final Map<String, String> requestParams,
-			final String methodType) throws Exception {
+	public AccessGrant verifyResponse(final Map<String, String> requestParams, final String methodType)
+			throws Exception {
 		LOG.info("Verifying the authentication response from provider");
 
 		if (requestParams.get("access_token") != null) {
@@ -147,14 +151,16 @@ public class OAuth2 implements OAuthStrategyBase {
 		StringBuffer sb = new StringBuffer();
 		if (MethodType.GET.toString().equals(methodType)) {
 			sb.append(endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL));
-			char separator = endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL)
-					.indexOf('?') == -1 ? '?' : '&';
+			char separator = endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL).indexOf('?') == -1 ? '?' : '&';
 			sb.append(separator);
 		}
 		sb.append("client_id=").append(oauth.getConfig().get_consumerKey());
 		sb.append("&redirect_uri=").append(this.successUrl);
-		sb.append("&client_secret=").append(
-				oauth.getConfig().get_consumerSecret());
+		if (urlEncodeClientSecret) {
+			sb.append("&client_secret=").append(URLEncoder.encode(oauth.getConfig().get_consumerSecret(), "UTF-8"));
+		} else {
+			sb.append("&client_secret=").append(oauth.getConfig().get_consumerSecret());
+		}
 		sb.append("&code=").append(acode);
 		sb.append("&grant_type=authorization_code");
 
@@ -164,13 +170,11 @@ public class OAuth2 implements OAuthStrategyBase {
 			if (MethodType.GET.toString().equals(methodType)) {
 				authURL = sb.toString();
 				LOG.debug("URL for Access Token request : " + authURL);
-				response = HttpUtil.doHttpRequest(authURL, methodType, null,
-						null);
+				response = HttpUtil.doHttpRequest(authURL, methodType, null, null);
 			} else {
 				authURL = endpoints.get(Constants.OAUTH_ACCESS_TOKEN_URL);
 				LOG.debug("URL for Access Token request : " + authURL);
-				response = HttpUtil.doHttpRequest(authURL, methodType,
-						sb.toString(), null);
+				response = HttpUtil.doHttpRequest(authURL, methodType, sb.toString(), null);
 			}
 		} catch (Exception e) {
 			throw new SocialAuthException("Error in url : " + authURL, e);
@@ -181,15 +185,14 @@ public class OAuth2 implements OAuthStrategyBase {
 		} catch (IOException io) {
 			throw new SocialAuthException(io);
 		}
-		Map<String, Object> attributes = new HashMap<String, Object>();
+		Map<String, Object> attributes = new HashMap<>();
 		Integer expires = null;
 		if (result.indexOf("{") < 0) {
 			String[] pairs = result.split("&");
 			for (String pair : pairs) {
 				String[] kv = pair.split("=");
 				if (kv.length != 2) {
-					throw new SocialAuthException(
-							"Unexpected auth response from " + authURL);
+					throw new SocialAuthException("Unexpected auth response from " + authURL);
 				} else {
 					if (kv[0].equals("access_token")) {
 						accessToken = kv[1];
@@ -221,15 +224,13 @@ public class OAuth2 implements OAuthStrategyBase {
 					Iterator<String> keyItr = jObj.keys();
 					while (keyItr.hasNext()) {
 						String key = keyItr.next();
-						if (!"access_token".equals(key)
-								&& !"expires_in".equals(key)) {
+						if (!"access_token".equals(key) && !"expires_in".equals(key)) {
 							attributes.put(key, jObj.optString(key));
 						}
 					}
 				}
 			} catch (JSONException je) {
-				throw new SocialAuthException("Unexpected auth response from "
-						+ authURL);
+				throw new SocialAuthException("Unexpected auth response from " + authURL);
 			}
 		}
 		LOG.debug("Access Token : " + accessToken);
@@ -248,8 +249,7 @@ public class OAuth2 implements OAuthStrategyBase {
 			}
 			accessGrant.setProviderId(providerId);
 		} else {
-			throw new SocialAuthException(
-					"Access token and expires not found from " + authURL);
+			throw new SocialAuthException("Access token and expires not found from " + authURL);
 		}
 		return accessGrant;
 	}
@@ -267,25 +267,19 @@ public class OAuth2 implements OAuthStrategyBase {
 	@Override
 	public Response executeFeed(final String url) throws Exception {
 		if (accessGrant == null) {
-			throw new SocialAuthException(
-					"Please call verifyResponse function first to get Access Token");
+			throw new SocialAuthException("Please call verifyResponse function first to get Access Token");
 		}
 		char separator = url.indexOf('?') == -1 ? '?' : '&';
-		String urlStr = url + separator + accessTokenParameterName + "="
-				+ accessGrant.getKey();
+		String urlStr = url + separator + accessTokenParameterName + "=" + accessGrant.getKey();
 		LOG.debug("Calling URL : " + urlStr);
-		return HttpUtil.doHttpRequest(urlStr, MethodType.GET.toString(), null,
-				null);
+		return HttpUtil.doHttpRequest(urlStr, MethodType.GET.toString(), null, null);
 	}
 
 	@Override
-	public Response executeFeed(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String body)
-			throws Exception {
+	public Response executeFeed(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String body) throws Exception {
 		if (accessGrant == null) {
-			throw new SocialAuthException(
-					"Please call verifyResponse function first to get Access Token");
+			throw new SocialAuthException("Please call verifyResponse function first to get Access Token");
 		}
 		String reqURL = url;
 		String bodyStr = body;
@@ -313,15 +307,12 @@ public class OAuth2 implements OAuthStrategyBase {
 				}
 				reqURL += sb.toString();
 			}
-		} else if (MethodType.POST.toString().equals(methodType)
-				|| MethodType.PUT.toString().equals(methodType)) {
+		} else if (MethodType.POST.toString().equals(methodType) || MethodType.PUT.toString().equals(methodType)) {
 			if (sb.length() > 0) {
 				if (bodyStr != null) {
-					if (headerParams != null
-							&& headerParams.containsKey("Content-Type")) {
+					if (headerParams != null && headerParams.containsKey("Content-Type")) {
 						String val = headerParams.get("Content-Type");
-						if (!"application/json".equals(val)
-								&& val.indexOf("text/xml") == -1) {
+						if (!"application/json".equals(val) && val.indexOf("text/xml") == -1) {
 							bodyStr += "&";
 							bodyStr += sb.toString();
 						}
@@ -338,8 +329,7 @@ public class OAuth2 implements OAuthStrategyBase {
 		LOG.debug("Calling URL	:	" + reqURL);
 		LOG.debug("Body		:	" + bodyStr);
 		LOG.debug("Header Params	:	" + headerParams);
-		return HttpUtil
-				.doHttpRequest(reqURL, methodType, bodyStr, headerParams);
+		return HttpUtil.doHttpRequest(reqURL, methodType, bodyStr, headerParams);
 	}
 
 	@Override
@@ -348,8 +338,7 @@ public class OAuth2 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public void setAccessTokenParameterName(
-			final String accessTokenParameterName) {
+	public void setAccessTokenParameterName(final String accessTokenParameterName) {
 		this.accessTokenParameterName = accessTokenParameterName;
 	}
 
@@ -360,18 +349,15 @@ public class OAuth2 implements OAuthStrategyBase {
 	}
 
 	@Override
-	public Response uploadImage(final String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String fileName,
-			final InputStream inputStream, final String fileParamName)
-			throws Exception {
-		Map<String, String> map = new HashMap<String, String>();
+	public Response uploadImage(final String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String fileName, final InputStream inputStream,
+			final String fileParamName) throws Exception {
+		Map<String, String> map = new HashMap<>();
 		map.put(accessTokenParameterName, accessGrant.getKey());
 		if (params != null && params.size() > 0) {
 			map.putAll(params);
 		}
-		return HttpUtil.doHttpRequest(url, methodType, map, headerParams,
-				inputStream, fileName, null);
+		return HttpUtil.doHttpRequest(url, methodType, map, headerParams, inputStream, fileName, null);
 	}
 
 	@Override
