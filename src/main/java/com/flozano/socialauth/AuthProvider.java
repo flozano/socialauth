@@ -39,17 +39,17 @@ import com.flozano.socialauth.util.Response;
  * call the getLoginRedirectURL method to get the URL where the user needs to be
  * redirected. It is the responsibility of the caller to redirect the user to
  * that URL.
- * 
+ *
  * Once the external provider like Facebook redirects the user back to our
  * application, we call the verifyResponse method and pass along the HttpRequest
  * object that is called upon redirection.
- * 
+ *
  * If the verifyResponse method returns a non null profile object, we can start
  * calling the other methods to obtain user information, update status or import
  * contacts
- * 
+ *
  * @author Abhinav Maheshwari
- * 
+ *
  */
 
 public interface AuthProvider {
@@ -70,27 +70,35 @@ public interface AuthProvider {
 	 * This is the most important action. It redirects the browser to an
 	 * appropriate URL which will be used for authentication with the provider
 	 * that has been set using setId()
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public String getLoginRedirectURL(String successUrl) throws Exception;
 
 	/**
+	 * This is the most important action. It redirects the browser to an
+	 * appropriate URL which will be used for authentication with the provider
+	 * that has been set using setId()
+	 *
+	 * @throws Exception
+	 */
+	public String getLoginRedirectURL(String successUrl, String state) throws Exception;
+
+	/**
 	 * Verifies the user when the external provider redirects back to our
 	 * application.
-	 * 
+	 *
 	 * @param requestParams
 	 *            Request parameters received from the provider
 	 * @return AuthProvider object
 	 * @throws Exception
 	 */
-	public Profile verifyResponse(Map<String, String> requestParams)
-			throws Exception;
+	public Profile verifyResponse(Map<String, String> requestParams) throws Exception;
 
 	/**
 	 * Updates the status on the chosen provider if available. This may not be
 	 * implemented for all providers.
-	 * 
+	 *
 	 * @param msg
 	 *            Message to be shown as user's status
 	 */
@@ -99,7 +107,7 @@ public interface AuthProvider {
 	/**
 	 * Gets the list of contacts of the user and their email. this may not be
 	 * available for all providers.
-	 * 
+	 *
 	 * @return List of profile objects representing Contacts. Only name and
 	 *         email will be available
 	 */
@@ -107,7 +115,7 @@ public interface AuthProvider {
 
 	/**
 	 * Retrieves the user profile.
-	 * 
+	 *
 	 * @return Profile object containing the profile information.
 	 * @throws Exception
 	 */
@@ -119,7 +127,7 @@ public interface AuthProvider {
 	public void logout();
 
 	/**
-	 * 
+	 *
 	 * @param p
 	 *            Permission object which can be Permission.AUHTHENTICATE_ONLY,
 	 *            Permission.ALL, Permission.DEFAULT
@@ -130,7 +138,7 @@ public interface AuthProvider {
 	 * Makes OAuth signed HTTP request to a given URL for making any provider
 	 * specific calls. For more information, read the comments of this function
 	 * in different provider.
-	 * 
+	 *
 	 * @param url
 	 *            URL to make HTTP request.
 	 * @param methodType
@@ -145,39 +153,36 @@ public interface AuthProvider {
 	 * @return Response object
 	 * @throws Exception
 	 */
-	public Response api(String url, final String methodType,
-			final Map<String, String> params,
-			final Map<String, String> headerParams, final String body)
-			throws Exception;
+	public Response api(String url, final String methodType, final Map<String, String> params,
+			final Map<String, String> headerParams, final String body) throws Exception;
 
 	/**
 	 * Retrieves the AccessGrant object.
-	 * 
+	 *
 	 * @return AccessGrant object.
 	 */
 	public AccessGrant getAccessGrant();
 
 	/**
 	 * Retrieves the provider id
-	 * 
+	 *
 	 * @return provider id.
 	 */
 	public String getProviderId();
 
 	/**
 	 * Stores access grant for the provider *
-	 * 
+	 *
 	 * @param accessGrant
 	 *            It contains the access token and other information
 	 * @throws AccessTokenExpireException
 	 */
-	public void setAccessGrant(AccessGrant accessGrant)
-			throws AccessTokenExpireException, SocialAuthException;
+	public void setAccessGrant(AccessGrant accessGrant) throws AccessTokenExpireException, SocialAuthException;
 
 	/**
 	 * Updates the image and message on the chosen provider if available. This
 	 * is implemented only for Facebook and Twitter.
-	 * 
+	 *
 	 * @param message
 	 *            Status Message
 	 * @param fileName
@@ -187,12 +192,12 @@ public interface AuthProvider {
 	 * @return Response object
 	 * @throws Exception
 	 */
-	public Response uploadImage(final String message, final String fileName,
-			final InputStream inputStream) throws Exception;
+	public Response uploadImage(final String message, final String fileName, final InputStream inputStream)
+			throws Exception;
 
 	/**
 	 * Returns True if provider support given plugin otherwise returns False
-	 * 
+	 *
 	 * @param clazz
 	 *            Fully qualified plugin class name e.g
 	 *            <b>com.flozano.socialauth.plugin.FeedPlugin.class</b>
@@ -202,11 +207,11 @@ public interface AuthProvider {
 
 	/**
 	 * Returns the required plugin if provider support that.
-	 * 
+	 *
 	 * @param clazz
 	 *            Fully qualified plugin class name e.g
 	 *            <b>com.flozano.socialauth.plugin.FeedPlugin.class</b>
-	 * 
+	 *
 	 * @return the required plugin object
 	 * @throws Exception
 	 */
@@ -215,7 +220,7 @@ public interface AuthProvider {
 	/**
 	 * Registers plugin for a provider those are configured in configuration
 	 * properties or mentioned in provider implementation.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void registerPlugins() throws Exception;
@@ -223,12 +228,11 @@ public interface AuthProvider {
 	/**
 	 * Makes a call for a provider to get RefreshToken and returns object of
 	 * that provider
-	 * 
+	 *
 	 * @param accessGrant
 	 *            AccessGrant which contains AccessToken
 	 * @return object of provider
 	 * @throws SocialAuthException
 	 */
-	public void refreshToken(AccessGrant accessGrant)
-			throws SocialAuthException;
+	public void refreshToken(AccessGrant accessGrant) throws SocialAuthException;
 }

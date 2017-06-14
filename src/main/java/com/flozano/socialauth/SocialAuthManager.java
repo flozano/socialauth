@@ -45,9 +45,9 @@ import com.flozano.socialauth.util.OAuthConfig;
 /**
  * This class manages the Map of all the connected providers by using this
  * manager.
- * 
+ *
  * @author tarunn@brickred.com
- * 
+ *
  */
 public class SocialAuthManager implements Serializable {
 
@@ -61,13 +61,13 @@ public class SocialAuthManager implements Serializable {
 	private final Map<String, Permission> permissionsMap;
 
 	public SocialAuthManager() {
-		providersMap = new HashMap<String, AuthProvider>();
-		permissionsMap = new HashMap<String, Permission>();
+		providersMap = new HashMap<>();
+		permissionsMap = new HashMap<>();
 	}
 
 	/**
 	 * Retrieves the socialauth config
-	 * 
+	 *
 	 * @return the socialauth config
 	 */
 	public SocialAuthConfig getSocialAuthConfig() {
@@ -76,18 +76,16 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Updates the socialauth config
-	 * 
+	 *
 	 * @param socialAuthConfig
 	 *            the SocialAuthConfig object which contains the configuration
 	 *            for providers
 	 * @throws Exception
 	 */
-	public void setSocialAuthConfig(final SocialAuthConfig socialAuthConfig)
-			throws Exception {
+	public void setSocialAuthConfig(final SocialAuthConfig socialAuthConfig) throws Exception {
 		LOG.debug("Setting socialauth config");
 		if (socialAuthConfig == null) {
-			throw new SocialAuthConfigurationException(
-					"SocialAuthConfig is null");
+			throw new SocialAuthConfigurationException("SocialAuthConfig is null");
 		} else {
 			if (!socialAuthConfig.isConfigSetup()) {
 				throw new SocialAuthConfigurationException(
@@ -100,7 +98,7 @@ public class SocialAuthManager implements Serializable {
 	/**
 	 * This is the most important action. It provides the URL which will be used
 	 * for authentication with the provider
-	 * 
+	 *
 	 * @param id
 	 *            the provider id
 	 * @param successUrl
@@ -110,17 +108,37 @@ public class SocialAuthManager implements Serializable {
 	 *         provider
 	 * @throws Exception
 	 */
-	public String getAuthenticationUrl(final String id, final String successUrl)
-			throws Exception {
-		LOG.debug("Getting Authentication URL for provider " + id
-				+ ", with success url : " + successUrl);
-		return getAuthURL(id, successUrl, null);
+	public String getAuthenticationUrl(final String id, final String successUrl) throws Exception {
+		LOG.debug("Getting Authentication URL for provider " + id + ", with success url : " + successUrl);
+		return getAuthURL(id, successUrl, null, null);
 	}
 
 	/**
 	 * This is the most important action. It provides the URL which will be used
 	 * for authentication with the provider
-	 * 
+	 *
+	 * @param id
+	 *            the provider id
+	 * @param successUrl
+	 *            success page URL on which provider will redirect after
+	 *            authentication
+	 * @param state
+	 *            an opaque value used by the client to maintain state between
+	 *            the request and callback
+	 * @return the URL string which will be used for authentication with
+	 *         provider
+	 * @throws Exception
+	 */
+	public String getAuthenticationUrl(final String id, final String successUrl, final String state) throws Exception {
+		LOG.debug("Getting Authentication URL for provider " + id + ", with success url : " + successUrl
+				+ ", with state: " + state);
+		return getAuthURL(id, successUrl, null, state);
+	}
+
+	/**
+	 * This is the most important action. It provides the URL which will be used
+	 * for authentication with the provider
+	 *
 	 * @param id
 	 *            the provider id
 	 * @param successUrl
@@ -133,21 +151,44 @@ public class SocialAuthManager implements Serializable {
 	 *         provider
 	 * @throws Exception
 	 */
-	public String getAuthenticationUrl(final String id,
-			final String successUrl, final Permission permission)
+	public String getAuthenticationUrl(final String id, final String successUrl, final Permission permission)
 			throws Exception {
-		LOG.debug("Getting Authentication URL for provider " + id
-				+ ", with success url : " + successUrl);
-		return getAuthURL(id, successUrl, permission);
+		LOG.debug("Getting Authentication URL for provider " + id + ", with success url : " + successUrl);
+		return getAuthURL(id, successUrl, permission, null);
 	}
 
-	private String getAuthURL(final String id, final String successUrl,
-			final Permission permission) throws Exception {
+	/**
+	 * This is the most important action. It provides the URL which will be used
+	 * for authentication with the provider
+	 *
+	 * @param id
+	 *            the provider id
+	 * @param successUrl
+	 *            success page URL on which provider will redirect after
+	 *            authentication
+	 * @param permission
+	 *            Permission object which can be Permission.AUHTHENTICATE_ONLY,
+	 *            Permission.ALL, Permission.DEFAULT
+	 * @param state
+	 *            an opaque value used by the client to maintain state between
+	 *            the request and callback
+	 * @return the URL string which will be used for authentication with
+	 *         provider
+	 * @throws Exception
+	 */
+	public String getAuthenticationUrl(final String id, final String successUrl, final Permission permission,
+			String state) throws Exception {
+		LOG.debug("Getting Authentication URL for provider " + id + ", with success url : " + successUrl
+				+ ", with state: " + state);
+		return getAuthURL(id, successUrl, permission, state);
+	}
+
+	private String getAuthURL(final String id, final String successUrl, final Permission permission, final String state)
+			throws Exception {
 		String url;
 		providerId = id;
 		if (socialAuthConfig == null) {
-			throw new SocialAuthConfigurationException(
-					"SocialAuth configuration is null.");
+			throw new SocialAuthConfigurationException("SocialAuth configuration is null.");
 		}
 		if (providersMap.get(id) != null) {
 			url = successUrl;
@@ -160,7 +201,11 @@ public class SocialAuthManager implements Serializable {
 			if (permission != null) {
 				authProvider.setPermission(permission);
 			}
-			url = authProvider.getLoginRedirectURL(successUrl);
+			if (state == null) {
+				url = authProvider.getLoginRedirectURL(successUrl);
+			} else {
+				url = authProvider.getLoginRedirectURL(successUrl, state);
+			}
 		}
 		return url;
 	}
@@ -168,15 +213,14 @@ public class SocialAuthManager implements Serializable {
 	/**
 	 * Verifies the user when the external provider redirects back to our
 	 * application.
-	 * 
+	 *
 	 * @param requestParams
 	 *            the request parameters
 	 * @return object of the required auth provider. You can call various
 	 *         function of this provider to get the information.
 	 * @throws Exception
 	 */
-	public AuthProvider connect(final Map<String, String> requestParams)
-			throws Exception {
+	public AuthProvider connect(final Map<String, String> requestParams) throws Exception {
 		if (providerId == null || authProvider == null) {
 			throw new SocialAuthManagerStateException();
 		}
@@ -192,7 +236,7 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Generates access token and creates a object of AccessGrant
-	 * 
+	 *
 	 * @param providerId
 	 *            the provider id
 	 * @param authCode
@@ -203,33 +247,30 @@ public class SocialAuthManager implements Serializable {
 	 * @return the AccessGrant object
 	 * @throws Exception
 	 */
-	public AccessGrant createAccessGrant(final String providerId,
-			final String authCode, final String redirectURL) throws Exception {
+	public AccessGrant createAccessGrant(final String providerId, final String authCode, final String redirectURL)
+			throws Exception {
 		this.providerId = providerId;
 		if (socialAuthConfig == null) {
-			throw new SocialAuthConfigurationException(
-					"SocialAuth configuration is null.");
+			throw new SocialAuthConfigurationException("SocialAuth configuration is null.");
 		}
 		getAuthenticationUrl(providerId, redirectURL);
 		if (providersMap.get(providerId) != null) {
 			authProvider = providersMap.get(providerId);
 		}
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("code", authCode);
 		connect(map);
 		LOG.debug("Access Grant Object :: " + authProvider.getAccessGrant());
 		return authProvider.getAccessGrant();
 	}
 
-	public AccessGrant createAccessGrant(final String providerId,
-			final Map<String, String> params, final String redirectURL)
-			throws Exception {
+	public AccessGrant createAccessGrant(final String providerId, final Map<String, String> params,
+			final String redirectURL) throws Exception {
 		this.providerId = providerId;
 		if (socialAuthConfig == null) {
-			throw new SocialAuthConfigurationException(
-					"SocialAuth configuration is null.");
+			throw new SocialAuthConfigurationException("SocialAuth configuration is null.");
 		}
-		
+
 		if (providersMap.get(providerId) != null) {
 			authProvider = providersMap.get(providerId);
 		}
@@ -240,7 +281,7 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * It disconnects with provider
-	 * 
+	 *
 	 * @param id
 	 *            the provider id
 	 * @return True if provider is disconnected or false if not.
@@ -258,20 +299,18 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Creates the provider with given access grant
-	 * 
+	 *
 	 * @param accessGrant
 	 *            the access grant object which contains
 	 * @return the AuthProvider
 	 * @throws Exception
 	 */
 	public AuthProvider connect(final AccessGrant accessGrant)
-			throws SocialAuthConfigurationException,
-			AccessTokenExpireException, SocialAuthException {
+			throws SocialAuthConfigurationException, AccessTokenExpireException, SocialAuthException {
 		if (accessGrant.getProviderId() == null || accessGrant.getKey() == null) {
 			throw new SocialAuthException("access grant is not valid");
 		}
-		LOG.debug("Connecting provider : " + accessGrant.getProviderId()
-				+ ", from given access grant");
+		LOG.debug("Connecting provider : " + accessGrant.getProviderId() + ", from given access grant");
 		AuthProvider provider = getProviderInstance(accessGrant.getProviderId());
 		provider.setAccessGrant(accessGrant);
 		authProvider = provider;
@@ -283,7 +322,7 @@ public class SocialAuthManager implements Serializable {
 	/**
 	 * Makes a call for a provider to get RefreshToken and returns object of
 	 * that provider
-	 * 
+	 *
 	 * @param accessGrant
 	 *            AccessGrant object which contains access token
 	 * @return the provider object
@@ -295,8 +334,7 @@ public class SocialAuthManager implements Serializable {
 		if (accessGrant.getProviderId() == null || accessGrant.getKey() == null) {
 			throw new SocialAuthException("access grant is not valid");
 		}
-		LOG.debug("Connecting provider : " + accessGrant.getProviderId()
-				+ ", from given access grant");
+		LOG.debug("Connecting provider : " + accessGrant.getProviderId() + ", from given access grant");
 		AuthProvider provider = getProviderInstance(accessGrant.getProviderId());
 		provider.refreshToken(accessGrant);
 		authProvider = provider;
@@ -307,7 +345,7 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Returns True if given provider is connected otherwise returns False
-	 * 
+	 *
 	 * @param providerId
 	 *            the provider id
 	 * @return provider connected status
@@ -321,7 +359,7 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Retrieves the instance of given provider
-	 * 
+	 *
 	 * @param providerId
 	 *            the provider id
 	 * @return the instance of given provider
@@ -339,8 +377,7 @@ public class SocialAuthManager implements Serializable {
 			Constructor<?> cons = obj.getConstructor(OAuthConfig.class);
 			provider = (AuthProvider) cons.newInstance(config);
 		} catch (NoSuchMethodException me) {
-			LOG.warn(obj.getName() + " does not implement a constructor "
-					+ obj.getName() + "(Poperties props)");
+			LOG.warn(obj.getName() + " does not implement a constructor " + obj.getName() + "(Poperties props)");
 			try {
 				provider = (AuthProvider) obj.newInstance();
 			} catch (Exception e) {
@@ -360,11 +397,11 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Returns the array list of connected providers ids.
-	 * 
+	 *
 	 * @return List of connected providers ids string.
 	 */
 	public List<String> getConnectedProvidersIds() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		for (Map.Entry<String, AuthProvider> entry : providersMap.entrySet()) {
 			list.add(entry.getKey());
 		}
@@ -373,7 +410,7 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Retrieves the current auth provider instance which is last connected.
-	 * 
+	 *
 	 * @return AuthProvider object
 	 */
 	public AuthProvider getCurrentAuthProvider() {
@@ -385,15 +422,14 @@ public class SocialAuthManager implements Serializable {
 
 	/**
 	 * Sets the permission for given provider.
-	 * 
+	 *
 	 * @param providerId
 	 *            the provider id for which permission need to be set
 	 * @param permission
 	 *            Permission object which can be Permission.AUHTHENTICATE_ONLY,
 	 *            Permission.ALL, Permission.DEFAULT
 	 */
-	public void setPermission(final String providerId,
-			final Permission permission) {
+	public void setPermission(final String providerId, final Permission permission) {
 		permissionsMap.put(providerId, permission);
 	}
 
