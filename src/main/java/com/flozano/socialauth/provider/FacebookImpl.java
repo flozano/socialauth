@@ -58,9 +58,8 @@ import com.flozano.socialauth.util.Response;
 
 /**
  * Provider implementation for Facebook
- * 
+ *
  * @author Abhinav Maheshwari
- * 
  */
 public class FacebookImpl extends AbstractProvider {
 
@@ -93,10 +92,10 @@ public class FacebookImpl extends AbstractProvider {
 
 	/**
 	 * Stores configuration for the provider
-	 * 
+	 *
 	 * @param providerConfig
-	 *            It contains the configuration of application like consumer key
-	 *            and consumer secret
+	 *            It contains the configuration of application like consumer key and
+	 *            consumer secret
 	 * @throws Exception
 	 */
 	public FacebookImpl(final OAuthConfig providerConfig) throws Exception {
@@ -123,7 +122,7 @@ public class FacebookImpl extends AbstractProvider {
 
 	/**
 	 * Stores access grant for the provider
-	 * 
+	 *
 	 * @param accessGrant
 	 *            It contains the access token and other information
 	 * @throws Exception
@@ -144,10 +143,9 @@ public class FacebookImpl extends AbstractProvider {
 	}
 
 	/**
-	 * This is the most important action. It redirects the browser to an
-	 * appropriate URL which will be used for authentication with the provider
-	 * that has been set using setId()
-	 * 
+	 * This is the most important action. It redirects the browser to an appropriate
+	 * URL which will be used for authentication with the provider that has been set
+	 * using setId()
 	 */
 	@Override
 	public String getLoginRedirectURL(final String successUrl) throws Exception {
@@ -157,8 +155,7 @@ public class FacebookImpl extends AbstractProvider {
 	/**
 	 * Verifies the user when the external provider redirects back to our
 	 * application.
-	 * 
-	 * 
+	 *
 	 * @param requestParams
 	 *            request parameters, received from the provider
 	 * @return Profile object containing the profile information
@@ -233,12 +230,13 @@ public class FacebookImpl extends AbstractProvider {
 				p.setGender(resp.getString("gender"));
 			}
 			p.setProfileImageURL(String.format(PROFILE_IMAGE_URL, resp.getString("id")));
-			String locale = resp.getString("locale");
-			if (locale != null) {
+			if (resp.has("locale")) {
+				String locale = resp.getString("locale");
 				String a[] = locale.split("_");
 				p.setLanguage(a[0]);
 				p.setCountry(a[1]);
 			}
+
 			p.setProviderId(getProviderId());
 			userProfile = p;
 			return p;
@@ -251,7 +249,7 @@ public class FacebookImpl extends AbstractProvider {
 	/**
 	 * Updates the status on the chosen provider if available. This may not be
 	 * implemented for all providers.
-	 * 
+	 *
 	 * @param msg
 	 *            Message to be shown as user's status
 	 * @throws Exception
@@ -283,7 +281,7 @@ public class FacebookImpl extends AbstractProvider {
 	/**
 	 * Gets the list of contacts of the user. this may not be available for all
 	 * providers.
-	 * 
+	 *
 	 * @return List of contact objects representing Contacts. Only name will be
 	 *         available
 	 */
@@ -339,7 +337,6 @@ public class FacebookImpl extends AbstractProvider {
 	}
 
 	/**
-	 * 
 	 * @param p
 	 *            Permission object which can be Permission.AUHTHENTICATE_ONLY,
 	 *            Permission.ALL, Permission.DEFAULT
@@ -354,7 +351,7 @@ public class FacebookImpl extends AbstractProvider {
 
 	/**
 	 * Makes HTTP request to a given URL.It attaches access token in URL.
-	 * 
+	 *
 	 * @param url
 	 *            URL to make HTTP request.
 	 * @param methodType
@@ -383,7 +380,7 @@ public class FacebookImpl extends AbstractProvider {
 
 	/**
 	 * Retrieves the user profile.
-	 * 
+	 *
 	 * @return Profile object containing the profile information.
 	 */
 	@Override
@@ -459,10 +456,9 @@ public class FacebookImpl extends AbstractProvider {
 				String respStr = response.getErrorStreamAsString(Constants.ENCODING);
 				JSONObject resp = new JSONObject(respStr);
 				/*
-				 * Sampe error response - { "error": { "message": "Error
-				 * validating access token: Session has expired at unix time
-				 * SOME_TIME. The current unix time is SOME_TIME.", "type": "
-				 * OAuthException", "code": 190 } }
+				 * Sampe error response - { "error": { "message": "Error validating access
+				 * token: Session has expired at unix time SOME_TIME. The current unix time is
+				 * SOME_TIME.", "type": " OAuthException", "code": 190 } }
 				 */
 				if (resp.has("error")) {
 					JSONObject error = resp.getJSONObject("error");
