@@ -53,7 +53,7 @@ public class AlbumsPluginImpl implements AlbumsPlugin, Serializable {
 	private static final String ALBUMS_URL = "https://graph.facebook.com/me/albums";
 	private static final String ALBUM_PHOTOS_URL = "https://graph.facebook.com/%1$s/photos";
 	private static final String ALBUM_COVER_URL = "https://graph.facebook.com/%1$s/picture?access_token=%2$s";
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(AlbumsPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

@@ -63,7 +63,7 @@ public class GitHubImpl extends AbstractProvider {
 	private static final long serialVersionUID = -3529658778980357392L;
 	private static final String PROFILE_URL = "https://api.github.com/user";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(GitHubImpl.class);
 
 	private Permission scope;
 	private OAuthConfig config;

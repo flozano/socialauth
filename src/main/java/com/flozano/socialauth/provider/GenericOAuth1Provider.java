@@ -68,7 +68,7 @@ public class GenericOAuth1Provider extends AbstractProvider {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Log LOG = LogFactory.getLog(GenericOAuth1Provider.class);
+	private static final Log LOG = LogFactory.getLog(GenericOAuth1Provider.class);
 
 	private Permission scope;
 	private boolean isVerify;

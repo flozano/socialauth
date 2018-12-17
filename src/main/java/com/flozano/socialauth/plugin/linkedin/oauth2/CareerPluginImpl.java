@@ -53,7 +53,7 @@ public class CareerPluginImpl implements CareerPlugin, Serializable {
 
 	private static final long serialVersionUID = 3296673276334272488L;
 	private ProviderSupport providerSupport;
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(CareerPluginImpl.class);
 
 	private static final String PROFILE_URL = "https://api.linkedin.com/v1/people/~:(id,phone-numbers,headline,educations,positions,recommendations-received)?oauth2_access_token=";
 

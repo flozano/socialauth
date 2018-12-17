@@ -53,7 +53,7 @@ public class FeedPluginImpl implements FeedPlugin, Serializable {
 	private static final long serialVersionUID = 7322246222894929129L;
 
 	private static final String FEED_URL = "https://api.instagram.com/v1/users/self/feed";
-	private final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
+	private static final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

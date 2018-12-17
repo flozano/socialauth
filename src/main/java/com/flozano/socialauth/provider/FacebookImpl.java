@@ -72,7 +72,7 @@ public class FacebookImpl extends AbstractProvider {
 	private static final String PUBLIC_PROFILE_URL = "http://www.facebook.com/profile.php?id=";
 	private static final String IMAGE_UPLOAD_URL = "https://graph.facebook.com/me/photos";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(FacebookImpl.class);
+	private static final Log LOG = LogFactory.getLog(FacebookImpl.class);
 
 	private Permission scope;
 	private OAuthConfig config;

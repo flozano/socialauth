@@ -59,7 +59,7 @@ public class FeedPluginImpl implements FeedPlugin, Serializable {
 	private static final long serialVersionUID = 497690659988355485L;
 	private static final String FEED_URL = "http://api.linkedin.com/v1/people/~/network/updates";
 	private static final Map<String, String> UPDATE_TYPES;
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

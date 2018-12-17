@@ -71,7 +71,7 @@ public class YammerImpl extends AbstractProvider implements AuthProvider,
 	private static final String PROFILE_URL = "https://www.yammer.com/api/v1/users/%1$s.json?access_token=%2$s";
 	private static final String CONTACTS_URL = "https://www.yammer.com/api/v1/users.json?sort_by=followers&access_token=%1$s";
 
-	private final Log LOG = LogFactory.getLog(YammerImpl.class);
+	private static final Log LOG = LogFactory.getLog(YammerImpl.class);
 
 	private String accessToken;
 	private String successUrl;

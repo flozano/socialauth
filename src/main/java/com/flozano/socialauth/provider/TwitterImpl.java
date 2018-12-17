@@ -79,7 +79,7 @@ public class TwitterImpl extends AbstractProvider implements AuthProvider,
 	private static final Pattern IMAGE_FILE_PATTERN = Pattern.compile(
 			"(jpg|jpeg|gif|png)$", Pattern.CASE_INSENSITIVE);
 
-	private final Log LOG = LogFactory.getLog(TwitterImpl.class);
+	private static final Log LOG = LogFactory.getLog(TwitterImpl.class);
 
 	private Permission scope;
 	private boolean isVerify;

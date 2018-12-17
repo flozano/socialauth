@@ -64,7 +64,7 @@ public class MendeleyImpl extends AbstractProvider {
 	private static final String PROFILE_URL = "https://api.mendeley.com/oapi/profiles/info/me/";
 	private static final String CONTACTS_URL = "https://api.mendeley.com/oapi/profiles/contacts/";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(MendeleyImpl.class);
+	private static final Log LOG = LogFactory.getLog(MendeleyImpl.class);
 
 	private Permission scope;
 	private boolean isVerify;

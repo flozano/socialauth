@@ -58,7 +58,7 @@ public class FeedPluginImpl implements FeedPlugin, Serializable {
 	private static final DateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
 
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
 
 	public FeedPluginImpl(final ProviderSupport providerSupport) {
 		this.providerSupport = providerSupport;

@@ -54,7 +54,7 @@ import com.flozano.socialauth.util.Response;
 public class OAuth2 implements OAuthStrategyBase {
 
 	private static final long serialVersionUID = -8431902665718727947L;
-	private final Log LOG = LogFactory.getLog(OAuth2.class);
+	private static final Log LOG = LogFactory.getLog(OAuth2.class);
 	private AccessGrant accessGrant;
 	private OAuthConsumer oauth;
 	private boolean providerState;

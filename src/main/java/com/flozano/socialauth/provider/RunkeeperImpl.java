@@ -68,7 +68,7 @@ public class RunkeeperImpl extends AbstractProvider {
 	private static final long serialVersionUID = 8644510564735754296L;
 	private static final String PROFILE_URL = "http://api.runkeeper.com/profile";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(RunkeeperImpl.class);
+	private static final Log LOG = LogFactory.getLog(RunkeeperImpl.class);
 
 	private Permission scope;
 	private OAuthConfig config;

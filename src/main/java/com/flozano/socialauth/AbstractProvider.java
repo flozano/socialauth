@@ -53,7 +53,7 @@ public abstract class AbstractProvider implements AuthProvider, Serializable {
 
 	private Map<Class<? extends Plugin>, Class<? extends Plugin>> pluginsMap;
 
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(AbstractProvider.class);
 
 	public AbstractProvider() throws Exception {
 		pluginsMap = new HashMap<>();

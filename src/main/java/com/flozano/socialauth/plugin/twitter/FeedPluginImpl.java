@@ -54,7 +54,7 @@ public class FeedPluginImpl implements FeedPlugin, Serializable {
 	private static final String FEED_URL = "https://api.twitter.com/1.1/statuses/home_timeline.json";
 	private static final DateFormat dateFormat = new SimpleDateFormat(
 			"EEE MMM dd hh:mm:ss z yyyy");
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

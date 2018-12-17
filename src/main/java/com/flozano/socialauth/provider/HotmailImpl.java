@@ -72,7 +72,7 @@ public class HotmailImpl extends AbstractProvider {
 	private static final String UPDATE_STATUS_URL = "https://apis.live.net/v5.0/me/share";
 	private static final String PROFILE_PICTURE_URL = "https://apis.live.net/v5.0/me/picture?access_token=%1$s";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(HotmailImpl.class);
+	private static final Log LOG = LogFactory.getLog(HotmailImpl.class);
 
 	private Permission scope;
 	private boolean isVerify;

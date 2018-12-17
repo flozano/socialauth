@@ -64,7 +64,7 @@ public class SalesForceImpl extends AbstractProvider implements AuthProvider,
 
 	private static final long serialVersionUID = 6929330230703360670L;
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(SalesForceImpl.class);
+	private static final Log LOG = LogFactory.getLog(SalesForceImpl.class);
 
 	private OAuthConfig config;
 	private Permission scope;

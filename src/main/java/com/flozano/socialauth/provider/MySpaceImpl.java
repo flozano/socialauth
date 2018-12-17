@@ -64,7 +64,7 @@ public class MySpaceImpl extends AbstractProvider {
 	private static final String CONTACTS_URL = "http://api.myspace.com/1.0/people/@me/@all";
 	private static final String UPDATE_STATUS_URL = "http://api.myspace.com/1.0/statusmood/@me/@self";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(MySpaceImpl.class);
+	private static final Log LOG = LogFactory.getLog(MySpaceImpl.class);
 
 	private Permission scope;
 	private AccessGrant accessToken;

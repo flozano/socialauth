@@ -52,7 +52,7 @@ import com.flozano.socialauth.util.OAuthConfig;
 public class SocialAuthManager implements Serializable {
 
 	private static final long serialVersionUID = 1620459182486095613L;
-	private final Log LOG = LogFactory.getLog(SocialAuthManager.class);
+	private static final Log LOG = LogFactory.getLog(SocialAuthManager.class);
 	private AuthProvider authProvider;
 	private String providerId;
 	private String currentProviderId;

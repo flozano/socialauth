@@ -65,7 +65,7 @@ public class NimbleImpl extends AbstractProvider {
 
 	private static final String CONTACTS_URL = "https://api.nimble.com/api/v1/contacts?per_page=200";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(NimbleImpl.class);
+	private static final Log LOG = LogFactory.getLog(NimbleImpl.class);
 
 	private Permission scope;
 	private OAuthConfig config;

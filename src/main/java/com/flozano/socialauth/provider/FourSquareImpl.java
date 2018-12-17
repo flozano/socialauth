@@ -66,7 +66,7 @@ public class FourSquareImpl extends AbstractProvider {
     private static final String CONTACTS_URL = "https://api.foursquare.com/v2/users/self/friends?" + FOURSQUARE_VERSION_PARAMETER;
 	private static final String VIEW_PROFILE_URL = "http://foursquare.com/user/";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(FourSquareImpl.class);
+	private static final Log LOG = LogFactory.getLog(FourSquareImpl.class);
 
 	private Permission scope;
 	private String accessToken;

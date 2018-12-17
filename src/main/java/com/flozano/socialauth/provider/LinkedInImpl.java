@@ -71,7 +71,7 @@ public class LinkedInImpl extends AbstractProvider {
 	private static final String PROFILE_URL = "http://api.linkedin.com/v1/people/~:(id,first-name,last-name,languages,date-of-birth,picture-url,email-address,location:(name),phone-numbers,main-address)";
 	private static final String STATUS_BODY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><share><comment>%1$s</comment><visibility><code>anyone</code></visibility></share>";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(LinkedInImpl.class);
+	private static final Log LOG = LogFactory.getLog(LinkedInImpl.class);
 
 	private Permission scope;
 	private AccessGrant accessToken;

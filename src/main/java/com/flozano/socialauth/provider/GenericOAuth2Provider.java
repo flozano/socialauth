@@ -54,7 +54,7 @@ public class GenericOAuth2Provider extends AbstractProvider implements
 		AuthProvider, Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private final Log LOG = LogFactory.getLog(GenericOAuth2Provider.class);
+	private static final Log LOG = LogFactory.getLog(GenericOAuth2Provider.class);
 	private Permission scope;
 	private OAuthConfig config;
 	private AccessGrant accessGrant;

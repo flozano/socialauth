@@ -69,7 +69,7 @@ public class OpenIdImpl extends AbstractProvider implements AuthProvider,
 		Serializable {
 
 	private static final long serialVersionUID = 7694191649303094756L;
-	private final Log LOG = LogFactory.getLog(OpenIdImpl.class);
+	private static final Log LOG = LogFactory.getLog(OpenIdImpl.class);
 
 	private ConsumerManager manager;
 	private DiscoveryInformation discovered;

@@ -51,7 +51,7 @@ import com.flozano.socialauth.util.Response;
 public class Hybrid implements OAuthStrategyBase {
 
 	private static final long serialVersionUID = -1331047094086589944L;
-	private final Log LOG = LogFactory.getLog(Hybrid.class);
+	private static final Log LOG = LogFactory.getLog(Hybrid.class);
 
 	private AccessGrant requestToken;
 	private AccessGrant accessToken;

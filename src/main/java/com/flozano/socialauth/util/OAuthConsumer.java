@@ -54,7 +54,7 @@ public class OAuthConsumer implements Serializable, Constants {
 
 	private static final long serialVersionUID = -4560115102581632124L;
 	private static final Pattern AMPERSAND = Pattern.compile("&");
-	private final Log LOG = LogFactory.getLog(OAuthConsumer.class);
+	private static final Log LOG = LogFactory.getLog(OAuthConsumer.class);
 	private OAuthConfig config;
 	private ConnectionSettings connectionSettings = null;
 

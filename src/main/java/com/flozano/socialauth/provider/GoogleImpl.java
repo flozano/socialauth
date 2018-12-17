@@ -73,7 +73,7 @@ public class GoogleImpl extends AbstractProvider {
 	private static final String CONTACTS_FEED_URL = "https://www.google.com/m8/feeds/contacts/default/full/?max-results=1000";
 	private static final String CONTACT_NAMESPACE = "http://schemas.google.com/g/2005";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(GoogleImpl.class);
+	private static final Log LOG = LogFactory.getLog(GoogleImpl.class);
 
 	private Permission scope;
 	private AccessGrant accessToken;

@@ -67,7 +67,7 @@ public class InstagramImpl extends AbstractProvider {
 	private static final String CONTACTS_URL = "https://api.instagram.com/v1/users/self/follows";
 	private static final String VIEW_PROFILE_URL = "http://instagram.com/";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(InstagramImpl.class);
+	private static final Log LOG = LogFactory.getLog(InstagramImpl.class);
 
 	private OAuthConfig config;
 	private AccessGrant accessGrant;

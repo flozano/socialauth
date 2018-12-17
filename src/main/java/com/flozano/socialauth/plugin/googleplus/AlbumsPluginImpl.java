@@ -55,7 +55,7 @@ public class AlbumsPluginImpl implements AlbumsPlugin, Serializable {
 	private static final String PHOTOS_URL = "https://picasaweb.google.com/data/feed/api/user/default/albumid/";
 	private static final String ALBUM_NAMESPACE = "http://schemas.google.com/photos/2007";
 	private static final String MEDIA_NAMESPACE = "http://search.yahoo.com/mrss/";
-	private final Log LOG = LogFactory.getLog(this.getClass());
+	private static final Log LOG = LogFactory.getLog(AlbumsPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

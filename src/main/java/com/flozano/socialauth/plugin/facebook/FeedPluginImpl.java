@@ -54,7 +54,7 @@ public class FeedPluginImpl implements FeedPlugin, Serializable {
 	private static final String FEED_URL = "https://graph.facebook.com/me/feed";
 	private static final DateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'hh:mm:ssz");
-	private final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
+	private static final Log LOG = LogFactory.getLog(FeedPluginImpl.class);
 
 	private ProviderSupport providerSupport;
 

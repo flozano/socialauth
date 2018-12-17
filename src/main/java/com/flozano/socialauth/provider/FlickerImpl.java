@@ -70,7 +70,7 @@ public class FlickerImpl extends AbstractProvider implements AuthProvider,
 	private static final String PROFILE_URL = "http://api.flickr.com/services/rest/?method=flickr.people.getInfo&user_id=%1$s&apikey=%2$s";
 	private static final String CONTACT_URL = "http://api.flickr.com/services/rest/?method=flickr.contacts.getList&user_id=%1$s&apikey=%2$s";
 	private static final Map<String, String> ENDPOINTS;
-	private final Log LOG = LogFactory.getLog(FlickerImpl.class);
+	private static final Log LOG = LogFactory.getLog(FlickerImpl.class);
 
 	private Permission scope;
 	private boolean isVerify;
